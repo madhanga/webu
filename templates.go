@@ -9,7 +9,7 @@ import (
 	"text/template"
 )
 
-//go:embed web
+//go:embed web/*
 var web embed.FS
 
 func LoadTemplates() (map[string]*template.Template, error) {
