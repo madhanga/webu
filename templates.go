@@ -9,10 +9,7 @@ import (
 	"text/template"
 )
 
-//go:embed web/*
-var web embed.FS
-
-func LoadTemplates() (map[string]*template.Template, error) {
+func LoadTemplates(web embed.FS) (map[string]*template.Template, error) {
 	var cache = map[string]*template.Template{}
 
 	pages, err := fs.Glob(web, "web/*.page.html")
