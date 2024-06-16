@@ -2,14 +2,21 @@ package webu
 
 import (
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
+	"log"
+	"net/http"
 	"path/filepath"
 	"strings"
 	"text/template"
 )
 
-func LoadTemplates(web embed.FS) (map[string]*template.Template, error) {
+type Template struct {
+	cache map[string]*template.Template
+}
+
+func New(web embed.FS) (*Template, error) {
 	var cache = map[string]*template.Template{}
 
 	pages, err := fs.Glob(web, "web/*.page.html")
@@ -42,5 +49,19 @@ func LoadTemplates(web embed.FS) (map[string]*template.Template, error) {
 		cache[tmplNameStart] = tmpl
 	}
 
-	return cache, nil
+	return &Template{cache: cache}, nil
+}
+
+func (t *Template) Render(w http.ResponseWriter, tmplName string, data any) error {
+	var tmpl *template.Template
+	var found bool
+	if tmpl, found = t.cache[tmplName]; !found {
+		return errors.New("template " + tmplName + " found in cache")
+	}
+	return tmpl.Execute(w, data)
+}
+
+func Err(w http.ResponseWriter, err error) {
+	w.WriteHeader(http.StatusInternalServerError)
+	log.Printf(err.Error())
 }
