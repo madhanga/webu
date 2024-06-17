@@ -16,34 +16,35 @@ type Template struct {
 	cache map[string]*template.Template
 }
 
-func New(web embed.FS) (*Template, error) {
+func LoadTemplates(ui embed.FS) (*Template, error) {
 	var cache = map[string]*template.Template{}
 
-	pages, err := fs.Glob(web, "web/*.page.html")
+	pages, err := fs.Glob(ui, "ui/pages/**/*.html")
 	if err != nil {
 		return nil, err
 	}
+
 	for _, page := range pages {
 		var tmplName = filepath.Base(page)
 		var tmplNameStart = strings.Split(tmplName, ".")[0]
 
-		tmpl, err := template.New(tmplName).ParseFS(web, page)
+		tmpl, err := template.New(tmplName).ParseFS(ui, page)
 		if err != nil {
 			return nil, err
 		}
 
 		for _, t := range tmpl.Templates() {
+			if t.Name() == "css" || t.Name() == "js" || t.Name() == "main" {
+				continue
+			}
 			if t.Name() != tmplName && t.Tree.ParseName == tmplName {
 				cache[fmt.Sprintf("%s.%s", tmplNameStart, t.Name())] = t
 			}
 		}
 
-		matches, err := fs.Glob(web, "web/*.layout.html")
-		if len(matches) > 0 {
-			tmpl, err = tmpl.ParseFS(web, "web/*.layout.html")
-			if err != nil {
-				return nil, err
-			}
+		tmpl, err = tmpl.ParseFS(ui, "ui/index.html")
+		if err != nil {
+			return nil, err
 		}
 
 		cache[tmplNameStart] = tmpl
