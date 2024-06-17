@@ -19,7 +19,7 @@ type Template struct {
 func LoadTemplates(ui embed.FS) (*Template, error) {
 	var cache = map[string]*template.Template{}
 
-	pages, err := fs.Glob(ui, "ui/pages/**/*.html")
+	pages, err := fs.Glob(ui, "ui/**/*.html")
 	if err != nil {
 		return nil, err
 	}
